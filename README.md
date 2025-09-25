@@ -1,73 +1,116 @@
-# React + TypeScript + Vite
+# Decentraland API Documentation
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A unified API documentation site for Decentraland services, built with React, Redoc, and Redocly CLI.
 
-Currently, two official plugins are available:
+## 🚀 Quick Start
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### Prerequisites
 
-## React Compiler
+- Node.js 18+
+- Yarn package manager
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Running Locally
 
-## Expanding the ESLint configuration
+1. **Install dependencies**
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+   ```bash
+   yarn install
+   ```
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+2. **Start development server**
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+   ```bash
+   yarn dev
+   ```
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+   This will:
+
+   - Join all API specs using Redocly CLI
+   - Start the Vite dev server
+   - Open http://localhost:5173 in your browser
+
+3. **Build for production**
+   ```bash
+   yarn build
+   ```
+
+## 📝 Adding New API Specifications
+
+To add a new API to the documentation, simply update the `redocly.yaml` configuration file:
+
+```yaml
+extends:
+  - recommended
+
+apis:
+  social-service@v1:
+    root: https://decentraland.github.io/social-service-ea/communities-openapi.yaml
+    rules:
+      operation-4xx-response: off
+  comms-gatekeeper@v1:
+    root: https://decentraland.github.io/comms-gatekeeper/comms-gatekeeper-openapi.yaml
+    rules:
+      operation-4xx-response: off
+  # Add your new API here
+  your-new-api@v1:
+    root: https://your-api.com/openapi.yaml
+    rules:
+      operation-4xx-response: off
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Then update the `join-specs` script in `package.json`:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```json
+{
+  "scripts": {
+    "join-specs": "redocly join social-service@v1 comms-gatekeeper@v1 your-new-api@v1 -o public/joined-openapi.yaml --prefix-tags-with-filename --prefix-components-with-info-prop title"
+  }
+}
 ```
+
+## 🎨 Customization
+
+### Theme Configuration
+
+The documentation uses a custom theme defined in `src/App.tsx`. You can modify colors, typography, and layout by updating the theme object.
+
+### Redocly Configuration
+
+All Redocly settings are in `redocly.yaml`. This includes:
+
+- API specifications and their sources
+- Validation rules
+- OpenAPI rendering options
+
+## 🛠️ Available Scripts
+
+- `yarn dev` - Start development server
+- `yarn build` - Build for production
+- `yarn join-specs` - Join API specifications using Redocly CLI
+- `yarn preview` - Preview production build
+
+## 📁 Project Structure
+
+```
+├── public/
+│   └── joined-openapi.yaml    # Generated unified API spec
+├── src/
+│   ├── App.tsx                # Main React component with Redoc
+│   └── main.tsx              # React entry point
+├── redocly.yaml              # Redocly configuration
+└── package.json              # Dependencies and scripts
+```
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Add your API specification to `redocly.yaml`
+3. Update the `join-specs` script to include your API
+4. Test locally with `yarn dev`
+5. Submit a pull request
+
+## 📚 Documentation
+
+- [Redocly CLI Documentation](https://redocly.com/docs/cli/)
+- [Redoc Configuration Options](https://redocly.com/docs/redoc/config/)
+- [OpenAPI Specification](https://swagger.io/specification/)
