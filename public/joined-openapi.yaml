@@ -1,0 +1,3966 @@
+openapi: 3.0.0
+info:
+  title: Social Service API
+  version: 1.0.0
+  description: API documentation for the Social Service.
+tags:
+  - name: communities-openapi_Communities
+    x-displayName: Communities
+  - name: communities-openapi_Referrals
+    x-displayName: Referrals
+  - name: communities-openapi_Community Voice Chats
+    x-displayName: Community Voice Chats
+  - name: comms-gatekeeper-openapi_Health
+    x-displayName: Health
+  - name: comms-gatekeeper-openapi_Communications
+    x-displayName: Communications
+  - name: comms-gatekeeper-openapi_Scene Administration
+    x-displayName: Scene Administration
+  - name: comms-gatekeeper-openapi_Scene Bans
+    x-displayName: Scene Bans
+  - name: comms-gatekeeper-openapi_Scene Stream Access
+    x-displayName: Scene Stream Access
+  - name: comms-gatekeeper-openapi_Webhooks
+    x-displayName: Webhooks
+  - name: comms-gatekeeper-openapi_Private Messages
+    x-displayName: Private Messages
+  - name: comms-gatekeeper-openapi_Private Voice Chat
+    x-displayName: Private Voice Chat
+  - name: comms-gatekeeper-openapi_Community Voice Chat
+    x-displayName: Community Voice Chat
+paths:
+  /v1/communities:
+    servers:
+      - url: https://social-api.decentraland.org
+        description: Production server
+      - url: https://social-api.decentraland.zone
+        description: Development server
+    get:
+      summary: List communities
+      description: >
+        Lists all communities.
+
+        This endpoint has optional Signed Fetch authentication.
+
+        When signed, it includes properties related to the authenticated user in
+        its response.
+      security:
+        - Social_Service_API_SignedFetch: []
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Number of communities per page.
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Number of communities to skip.
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Search term to filter communities by name or description.
+        - name: onlyMemberOf
+          in: query
+          required: false
+          schema:
+            type: boolean
+          description: Filter communities where the authenticated user is a member.
+      responses:
+        '200':
+          description: Communities found
+          content:
+            application/json:
+              schema:
+                $ref: >-
+                  #/components/schemas/Social_Service_API_GetCommunities200OkResponse
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+      tags:
+        - communities-openapi_Communities
+    post:
+      summary: Create a new community
+      description: |
+        Creates a new community with the provided details.
+        This endpoint requires Signed Fetch authentication.
+      security:
+        - Social_Service_API_SignedFetch: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - name
+                - description
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                placeIds:
+                  type: string
+                  description: JSON array of place IDs to add to the community
+                thumbnail:
+                  type: string
+                  format: binary
+                  description: Community thumbnail image
+      responses:
+        '201':
+          description: Community created successfully
+          content:
+            application/json:
+              schema:
+                $ref: >-
+                  #/components/schemas/Social_Service_API_CreateCommunity201OkResponse
+        '401':
+          description: Unauthorized - Signed Fetch required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+      tags:
+        - communities-openapi_Communities
+  /v1/communities/{id}:
+    servers:
+      - url: https://social-api.decentraland.org
+        description: Production server
+      - url: https://social-api.decentraland.zone
+        description: Development server
+    get:
+      summary: Get a community by ID
+      description: |
+        Retrieves a specific community by its unique ID.
+        This endpoint requires Signed Fetch authentication.
+      security:
+        - Social_Service_API_SignedFetch: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The unique identifier of the community.
+      responses:
+        '200':
+          description: Community found
+          content:
+            application/json:
+              schema:
+                $ref: >-
+                  #/components/schemas/Social_Service_API_GetCommunityById200OkResponse
+        '401':
+          description: Unauthorized - Signed Fetch required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+        '404':
+          description: Community not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+      tags:
+        - communities-openapi_Communities
+    put:
+      summary: Update a community
+      description: >
+        Updates a community's details including name, description, privacy
+        settings, and thumbnail.
+
+        This endpoint requires Signed Fetch authentication and only community
+        owners can update.
+      security:
+        - Social_Service_API_SignedFetch: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The unique identifier of the community.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Community name
+                description:
+                  type: string
+                  description: Community description
+                placeIds:
+                  type: string
+                  description: >-
+                    JSON array of place IDs to replace all current community
+                    places
+                thumbnail:
+                  type: string
+                  format: binary
+                  description: Community thumbnail image
+      responses:
+        '200':
+          description: Community updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: >-
+                  #/components/schemas/Social_Service_API_UpdateCommunity200OkResponse
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+        '401':
+          description: Unauthorized - Signed Fetch required or not owner
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+        '404':
+          description: Community not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+      tags:
+        - communities-openapi_Communities
+    delete:
+      summary: Delete a community
+      description: |
+        Deletes a community.
+        This endpoint requires Signed Fetch authentication.
+      security:
+        - Social_Service_API_SignedFetch: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The unique identifier of the community.
+      responses:
+        '204':
+          description: Community deleted successfully
+        '401':
+          description: Unauthorized - Signed Fetch required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+        '404':
+          description: Community not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+      tags:
+        - communities-openapi_Communities
+  /v1/communities/{id}/members:
+    servers:
+      - url: https://social-api.decentraland.org
+        description: Production server
+      - url: https://social-api.decentraland.zone
+        description: Development server
+    get:
+      summary: List community members
+      description: >
+        Lists all members of a specific community.
+
+        This endpoint has optional Signed Fetch authentication.
+
+        When not signed, it only returns members of public communities.
+
+        When signed, it returns all members if the user has access to the
+        community.
+      security:
+        - Social_Service_API_SignedFetch: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The unique identifier of the community.
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Number of members per page.
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Number of members to skip.
+        - name: onlyOnline
+          in: query
+          required: false
+          schema:
+            type: boolean
+          description: Filter to show only online members.
+      responses:
+        '200':
+          description: Members found
+          content:
+            application/json:
+              schema:
+                $ref: >-
+                  #/components/schemas/Social_Service_API_GetCommunityMembers200OkResponse
+        '401':
+          description: Unauthorized - Signed Fetch required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+        '404':
+          description: Community not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+      tags:
+        - communities-openapi_Communities
+    post:
+      summary: Add a member to a community
+      description: |
+        Adds a member to a community.
+        This endpoint requires Signed Fetch authentication.
+      security:
+        - Social_Service_API_SignedFetch: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The unique identifier of the community.
+      responses:
+        '204':
+          description: Member added successfully
+        '401':
+          description: Unauthorized - Signed Fetch required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+        '404':
+          description: Community not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+      tags:
+        - communities-openapi_Communities
+  /v1/communities/{id}/members/{memberAddress}:
+    servers:
+      - url: https://social-api.decentraland.org
+        description: Production server
+      - url: https://social-api.decentraland.zone
+        description: Development server
+    delete:
+      summary: Remove a member from a community
+      description: |
+        Removes a member from a community.
+        This endpoint requires Signed Fetch authentication.
+      security:
+        - Social_Service_API_SignedFetch: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The unique identifier of the community.
+        - name: memberAddress
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ETH address of the member to remove.
+      responses:
+        '204':
+          description: Member removed successfully
+        '401':
+          description: Unauthorized - Signed Fetch required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+        '404':
+          description: Community or member not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+      tags:
+        - communities-openapi_Communities
+    patch:
+      summary: Update member role
+      description: |
+        Updates the role of a member in a community.
+        This endpoint requires Signed Fetch authentication.
+      security:
+        - Social_Service_API_SignedFetch: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The unique identifier of the community.
+        - name: memberAddress
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ETH address of the member to update.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - role
+              properties:
+                role:
+                  type: string
+                  enum:
+                    - Owner
+                    - Moderator
+                    - Member
+                  description: New role for the member
+      responses:
+        '204':
+          description: Member role updated successfully
+        '401':
+          description: Unauthorized - Signed Fetch required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+        '404':
+          description: Community or member not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+      tags:
+        - communities-openapi_Communities
+  /v1/members/{address}/communities:
+    servers:
+      - url: https://social-api.decentraland.org
+        description: Production server
+      - url: https://social-api.decentraland.zone
+        description: Development server
+    get:
+      summary: List communities for a member
+      description: |
+        Lists all communities a member belongs to.
+        This endpoint requires Signed Fetch authentication.
+      security:
+        - Social_Service_API_SignedFetch: []
+      parameters:
+        - name: address
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ETH address of the member.
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Number of communities per page.
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Number of communities to skip.
+      responses:
+        '200':
+          description: Communities found
+          content:
+            application/json:
+              schema:
+                $ref: >-
+                  #/components/schemas/Social_Service_API_GetMemberCommunities200OkResponse
+        '401':
+          description: Unauthorized - Signed Fetch required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+      tags:
+        - communities-openapi_Communities
+  /v1/communities/{id}/bans:
+    servers:
+      - url: https://social-api.decentraland.org
+        description: Production server
+      - url: https://social-api.decentraland.zone
+        description: Development server
+    get:
+      summary: List banned members of a community
+      description: |
+        Lists all banned members of a specific community.
+        This endpoint requires Signed Fetch authentication.
+      security:
+        - Social_Service_API_SignedFetch: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The unique identifier of the community.
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Number of banned members per page.
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Number of banned members to skip.
+      responses:
+        '200':
+          description: Banned members found
+          content:
+            application/json:
+              schema:
+                $ref: >-
+                  #/components/schemas/Social_Service_API_GetBannedMembers200OkResponse
+        '401':
+          description: Unauthorized - Signed Fetch required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+        '404':
+          description: Community not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+      tags:
+        - communities-openapi_Communities
+  /v1/communities/{id}/members/{memberAddress}/bans:
+    servers:
+      - url: https://social-api.decentraland.org
+        description: Production server
+      - url: https://social-api.decentraland.zone
+        description: Development server
+    post:
+      summary: Ban a member from a community
+      description: |
+        Bans a member from a community.
+        This endpoint requires Signed Fetch authentication.
+      security:
+        - Social_Service_API_SignedFetch: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The unique identifier of the community.
+        - name: memberAddress
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ETH address of the member to ban.
+      responses:
+        '204':
+          description: Member banned successfully
+        '401':
+          description: Unauthorized - Signed Fetch required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+        '404':
+          description: Community or member not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+      tags:
+        - communities-openapi_Communities
+    delete:
+      summary: Unban a member from a community
+      description: |
+        Unbans a member from a community.
+        This endpoint requires Signed Fetch authentication.
+      security:
+        - Social_Service_API_SignedFetch: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The unique identifier of the community.
+        - name: memberAddress
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ETH address of the member to unban.
+      responses:
+        '204':
+          description: Member unbanned successfully
+        '401':
+          description: Unauthorized - Signed Fetch required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+        '404':
+          description: Community or member not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+      tags:
+        - communities-openapi_Communities
+  /v1/communities/{id}/places:
+    servers:
+      - url: https://social-api.decentraland.org
+        description: Production server
+      - url: https://social-api.decentraland.zone
+        description: Development server
+    get:
+      summary: Get community places
+      description: >
+        Lists all places in a specific community.
+
+        This endpoint has optional Signed Fetch authentication.
+
+        When not signed, it only returns places of public communities.
+
+        When signed, it returns all places if the user has access to the
+        community or the community is public.
+      security:
+        - Social_Service_API_SignedFetch: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The unique identifier of the community.
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Number of places per page.
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Number of places to skip.
+      responses:
+        '200':
+          description: Places found
+          content:
+            application/json:
+              schema:
+                $ref: >-
+                  #/components/schemas/Social_Service_API_GetCommunityPlaces200OkResponse
+        '401':
+          description: Unauthorized - Signed Fetch required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+        '404':
+          description: Community not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+      tags:
+        - communities-openapi_Communities
+    post:
+      summary: Add places to community
+      description: |
+        Adds one or more places to a community.
+        This endpoint requires Signed Fetch authentication.
+        Duplicate places are ignored.
+      security:
+        - Social_Service_API_SignedFetch: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The unique identifier of the community.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - placeIds
+              properties:
+                placeIds:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+                  description: Array of place IDs to add to the community
+      responses:
+        '204':
+          description: Places added successfully
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+        '401':
+          description: Unauthorized - Signed Fetch required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+        '404':
+          description: Community not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+      tags:
+        - communities-openapi_Communities
+  /v1/communities/{id}/places/{placeId}:
+    servers:
+      - url: https://social-api.decentraland.org
+        description: Production server
+      - url: https://social-api.decentraland.zone
+        description: Development server
+    delete:
+      summary: Remove place from community
+      description: |
+        Removes a place from a community.
+        This endpoint requires Signed Fetch authentication.
+      security:
+        - Social_Service_API_SignedFetch: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The unique identifier of the community.
+        - name: placeId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The unique identifier of the place to remove.
+      responses:
+        '204':
+          description: Place removed successfully
+        '401':
+          description: Unauthorized - Signed Fetch required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+        '404':
+          description: Community or place not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+      tags:
+        - communities-openapi_Communities
+  /v1/communities/{address}/managed:
+    servers:
+      - url: https://social-api.decentraland.org
+        description: Production server
+      - url: https://social-api.decentraland.zone
+        description: Development server
+    get:
+      summary: Get managed communities for an address
+      description: >
+        Lists all communities where the specified address is an owner or
+        moderator.
+
+        This endpoint requires admin authentication.
+      security:
+        - Social_Service_API_BearerAuth: []
+      parameters:
+        - name: address
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ETH address of the user to get managed communities for.
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Number of communities per page.
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Number of communities to skip.
+      responses:
+        '200':
+          description: Managed communities found
+          content:
+            application/json:
+              schema:
+                $ref: >-
+                  #/components/schemas/Social_Service_API_GetManagedCommunities200OkResponse
+        '401':
+          description: Unauthorized - Admin token required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+      tags:
+        - communities-openapi_Communities
+  /v1/referral-progress:
+    servers:
+      - url: https://social-api.decentraland.org
+        description: Production server
+      - url: https://social-api.decentraland.zone
+        description: Development server
+    post:
+      summary: Create referral progress
+      description: |
+        Creates a referral relationship between a referrer and an invited user.
+        This endpoint requires Signed Fetch authentication.
+      security:
+        - Social_Service_API_SignedFetch: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - referrer
+              properties:
+                referrer:
+                  type: string
+                  description: ETH address of the referrer
+      responses:
+        '204':
+          description: Referral progress created successfully
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+        '401':
+          description: Unauthorized - Signed Fetch required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+      tags:
+        - communities-openapi_Referrals
+    patch:
+      summary: Update referral signed up status
+      description: >
+        Updates the referral progress status to signed up for the authenticated
+        user.
+
+        This endpoint requires Signed Fetch authentication.
+      security:
+        - Social_Service_API_SignedFetch: []
+      responses:
+        '204':
+          description: Referral status updated successfully
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+        '401':
+          description: Unauthorized - Signed Fetch required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+        '404':
+          description: Referral not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+      tags:
+        - communities-openapi_Referrals
+    get:
+      summary: Get invited users accepted stats
+      description: >
+        Retrieves the current users invited by a referral and the ones from the
+        last time they were fetched, along with reward images containing the
+        tier and URL information. This allows comparing the previously seen data
+        with the current one.
+
+        This endpoint requires Signed Fetch authentication.
+      security:
+        - Social_Service_API_SignedFetch: []
+      responses:
+        '200':
+          description: Referral statistics found
+          content:
+            application/json:
+              schema:
+                $ref: >-
+                  #/components/schemas/Social_Service_API_GetReferralStats200OkResponse
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+        '401':
+          description: Unauthorized - Signed Fetch required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+      tags:
+        - communities-openapi_Referrals
+  /v1/referral-email:
+    servers:
+      - url: https://social-api.decentraland.org
+        description: Production server
+      - url: https://social-api.decentraland.zone
+        description: Development server
+    post:
+      summary: Add referral email
+      description: |
+        Associates an email address with a referral for the authenticated user.
+        This endpoint requires Signed Fetch authentication.
+      security:
+        - Social_Service_API_SignedFetch: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: Email address to associate with the referral
+      responses:
+        '204':
+          description: Referral email added successfully
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+        '401':
+          description: Unauthorized - Signed Fetch required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+      tags:
+        - communities-openapi_Referrals
+  /v1/communities/{id}/requests:
+    servers:
+      - url: https://social-api.decentraland.org
+        description: Production server
+      - url: https://social-api.decentraland.zone
+        description: Development server
+    get:
+      summary: Get community requests
+      description: >
+        Lists all pending requests (invites and join requests) for a specific
+        community.
+
+        This endpoint requires Signed Fetch authentication and only community
+        owners or moderators can access it.
+      security:
+        - Social_Service_API_SignedFetch: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The unique identifier of the community.
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Number of requests per page.
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Number of requests to skip.
+        - name: type
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - invite
+              - request_to_join
+          description: Filter requests by type (invite or request_to_join).
+      responses:
+        '200':
+          description: Community requests found
+          content:
+            application/json:
+              schema:
+                $ref: >-
+                  #/components/schemas/Social_Service_API_GetCommunityRequests200OkResponse
+        '401':
+          description: Unauthorized - Signed Fetch required or insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+        '404':
+          description: Community not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+      tags:
+        - communities-openapi_Communities
+    post:
+      summary: Create community request
+      description: >
+        Creates a community request (invite or join request) for a specific
+        member.
+
+        This endpoint requires Signed Fetch authentication.
+      security:
+        - Social_Service_API_SignedFetch: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The unique identifier of the community.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - targetedAddress
+                - type
+              properties:
+                targetedAddress:
+                  type: string
+                  description: ETH address of the member to create the request for
+                type:
+                  type: string
+                  enum:
+                    - invite
+                    - request_to_join
+                  description: Type of request to create
+      responses:
+        '200':
+          description: Community request created successfully
+          content:
+            application/json:
+              schema:
+                $ref: >-
+                  #/components/schemas/Social_Service_API_CreateCommunityRequest200OkResponse
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+        '401':
+          description: Unauthorized - Signed Fetch required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+        '404':
+          description: Community not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+      tags:
+        - communities-openapi_Communities
+  /v1/communities/{id}/requests/{requestId}:
+    servers:
+      - url: https://social-api.decentraland.org
+        description: Production server
+      - url: https://social-api.decentraland.zone
+        description: Development server
+    patch:
+      summary: Update community request status
+      description: >
+        Updates the status of a community request (accept, reject, or cancel).
+
+        This endpoint requires Signed Fetch authentication with proper
+        permissions:
+
+        - For invites: Only the invited user can accept/reject, community
+        owners/moderators can cancel
+
+        - For join requests: Only community owners/moderators can accept/reject,
+        the requesting user can cancel
+      security:
+        - Social_Service_API_SignedFetch: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The unique identifier of the community.
+        - name: requestId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The unique identifier of the community request.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: >-
+                #/components/schemas/Social_Service_API_UpdateCommunityRequestStatusRequest
+      responses:
+        '204':
+          description: Community request status updated successfully
+        '400':
+          description: Invalid request or intention
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+        '401':
+          description: Unauthorized - Signed Fetch required or insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+        '404':
+          description: Community or request not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+      tags:
+        - communities-openapi_Communities
+  /v1/members/{address}/requests:
+    servers:
+      - url: https://social-api.decentraland.org
+        description: Production server
+      - url: https://social-api.decentraland.zone
+        description: Development server
+    get:
+      summary: Get member requests
+      description: >
+        Lists all pending requests (invites received and join requests sent) for
+        a specific member.
+
+        This endpoint requires Signed Fetch authentication and users can only
+        access their own requests.
+      security:
+        - Social_Service_API_SignedFetch: []
+      parameters:
+        - name: address
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ETH address of the member.
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Number of requests per page.
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Number of requests to skip.
+        - name: type
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - invite
+              - request_to_join
+          description: Filter requests by type (invite or request_to_join).
+      responses:
+        '200':
+          description: Member requests found
+          content:
+            application/json:
+              schema:
+                $ref: >-
+                  #/components/schemas/Social_Service_API_GetMemberRequests200OkResponse
+        '401':
+          description: >-
+            Unauthorized - Signed Fetch required or accessing another user's
+            requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+      tags:
+        - communities-openapi_Communities
+  /v1/community-voice-chats/active:
+    servers:
+      - url: https://social-api.decentraland.org
+        description: Production server
+      - url: https://social-api.decentraland.zone
+        description: Development server
+    get:
+      summary: Get active community voice chats
+      description: |
+        Lists all active community voice chats for the authenticated user.
+        This endpoint requires Signed Fetch authentication.
+      security:
+        - Social_Service_API_SignedFetch: []
+      responses:
+        '200':
+          description: Active community voice chats found
+          content:
+            application/json:
+              schema:
+                $ref: >-
+                  #/components/schemas/Social_Service_API_GetActiveCommunityVoiceChats200OkResponse
+        '401':
+          description: Unauthorized - Signed Fetch required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Social_Service_API_ErrorResponse'
+      tags:
+        - communities-openapi_Community Voice Chats
+  /ping:
+    servers:
+      - url: https://comms-gatekeeper.decentraland.org
+        description: Production server
+      - url: https://comms-gatekeeper.decentraland.zone
+        description: Development server
+    get:
+      operationId: ping
+      summary: Ping endpoint
+      description: |
+        Simple ping endpoint that returns the requested pathname.
+        Used for health checks and basic connectivity testing.
+        No authentication required.
+      security: []
+      responses:
+        '200':
+          description: Ping successful
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_PingResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+      tags:
+        - comms-gatekeeper-openapi_Health
+  /status:
+    servers:
+      - url: https://comms-gatekeeper.decentraland.org
+        description: Production server
+      - url: https://comms-gatekeeper.decentraland.zone
+        description: Development server
+    get:
+      operationId: getStatus
+      summary: Service status
+      description: |
+        Returns the current status of the service including version information,
+        current timestamp, and git commit hash.
+        No authentication required.
+      security: []
+      responses:
+        '200':
+          description: Status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_StatusResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+      tags:
+        - comms-gatekeeper-openapi_Health
+  /get-scene-adapter:
+    servers:
+      - url: https://comms-gatekeeper.decentraland.org
+        description: Production server
+      - url: https://comms-gatekeeper.decentraland.zone
+        description: Development server
+    post:
+      operationId: getSceneAdapter
+      summary: Get scene communication adapter
+      description: >
+        Generates LiveKit credentials for a user to join a scene's communication
+        room.
+
+        This endpoint handles authentication, blacklist checking, scene ban
+        verification,
+
+        and generates appropriate permissions for the user.
+
+        Requires Signed Fetch authentication from decentraland-kernel-scene.
+
+        Must include the complete identity header chain:
+        x-identity-auth-chain-0, x-identity-auth-chain-1,
+        x-identity-auth-chain-2, x-identity-timestamp, and x-identity-metadata.
+      security:
+        - Comms_Gatekeeper_API_SignedFetch: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Signed fetch request with scene and user information
+      responses:
+        '200':
+          description: Scene adapter generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_SceneAdapterResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+        '401':
+          description: Unauthorized - Invalid authentication or blacklisted user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+        '403':
+          description: Forbidden - User is banned from this scene
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+        '404':
+          description: Not found - Realm or scene not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+      tags:
+        - comms-gatekeeper-openapi_Communications
+  /scene-admin:
+    servers:
+      - url: https://comms-gatekeeper.decentraland.org
+        description: Production server
+      - url: https://comms-gatekeeper.decentraland.zone
+        description: Development server
+    get:
+      operationId: listSceneAdmins
+      summary: List scene administrators
+      description: >
+        Lists all administrators for a specific scene or world.
+
+        Only scene owners or existing administrators can access this endpoint.
+
+        Requires Signed Fetch authentication from decentraland-kernel-scene.
+
+        Must include the complete identity header chain:
+        x-identity-auth-chain-0, x-identity-auth-chain-1,
+        x-identity-auth-chain-2, x-identity-timestamp, and x-identity-metadata.
+      security:
+        - Comms_Gatekeeper_API_SignedFetch: []
+      parameters:
+        - name: admin
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by specific admin address
+      responses:
+        '200':
+          description: Scene administrators retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Comms_Gatekeeper_API_SceneAdmin'
+        '400':
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+        '401':
+          description: Unauthorized - Authentication required or insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+      tags:
+        - comms-gatekeeper-openapi_Scene Administration
+    post:
+      operationId: addSceneAdmin
+      summary: Add scene administrator
+      description: >
+        Adds a new administrator to a scene or world.
+
+        Only scene owners or existing administrators can add new administrators.
+
+        Requires Signed Fetch authentication from decentraland-kernel-scene.
+
+        Must include the complete identity header chain:
+        x-identity-auth-chain-0, x-identity-auth-chain-1,
+        x-identity-auth-chain-2, x-identity-timestamp, and x-identity-metadata.
+      security:
+        - Comms_Gatekeeper_API_SignedFetch: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Comms_Gatekeeper_API_AddSceneAdminRequest'
+      responses:
+        '204':
+          description: Scene administrator added successfully
+        '400':
+          description: >-
+            Invalid request - Invalid admin address or user already has
+            permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+        '401':
+          description: Unauthorized - Authentication required or insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+      tags:
+        - comms-gatekeeper-openapi_Scene Administration
+    delete:
+      operationId: removeSceneAdmin
+      summary: Remove scene administrator
+      description: >
+        Removes an administrator from a scene or world.
+
+        Only scene owners or existing administrators can remove administrators.
+
+        Requires Signed Fetch authentication from decentraland-kernel-scene.
+
+        Must include the complete identity header chain:
+        x-identity-auth-chain-0, x-identity-auth-chain-1,
+        x-identity-auth-chain-2, x-identity-timestamp, and x-identity-metadata.
+      security:
+        - Comms_Gatekeeper_API_SignedFetch: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Comms_Gatekeeper_API_AddSceneAdminRequest'
+      responses:
+        '204':
+          description: Scene administrator removed successfully
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+        '401':
+          description: Unauthorized - Authentication required or insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+      tags:
+        - comms-gatekeeper-openapi_Scene Administration
+  /scene-bans:
+    servers:
+      - url: https://comms-gatekeeper.decentraland.org
+        description: Production server
+      - url: https://comms-gatekeeper.decentraland.zone
+        description: Development server
+    get:
+      operationId: listSceneBans
+      summary: List scene bans
+      description: >
+        Lists all banned users for a specific scene or world.
+
+        Only scene owners or administrators can access this endpoint.
+
+        Requires Signed Fetch authentication from decentraland-kernel-scene.
+
+        Must include the complete identity header chain:
+        x-identity-auth-chain-0, x-identity-auth-chain-1,
+        x-identity-auth-chain-2, x-identity-timestamp, and x-identity-metadata.
+      security:
+        - Comms_Gatekeeper_API_SignedFetch: []
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          description: Number of bans per page
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+          description: Number of bans to skip
+      responses:
+        '200':
+          description: Scene bans retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: >-
+                  #/components/schemas/Comms_Gatekeeper_API_ListSceneBansResponse
+        '400':
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+        '401':
+          description: Unauthorized - Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+      tags:
+        - comms-gatekeeper-openapi_Scene Bans
+    post:
+      operationId: addSceneBan
+      summary: Add scene ban
+      description: >
+        Bans a user from a specific scene or world.
+
+        Only scene owners or administrators can ban users.
+
+        Requires Signed Fetch authentication from decentraland-kernel-scene.
+
+        Must include the complete identity header chain:
+        x-identity-auth-chain-0, x-identity-auth-chain-1,
+        x-identity-auth-chain-2, x-identity-timestamp, and x-identity-metadata.
+      security:
+        - Comms_Gatekeeper_API_SignedFetch: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Comms_Gatekeeper_API_AddSceneBanRequest'
+      responses:
+        '204':
+          description: User banned successfully
+        '400':
+          description: Invalid request - Invalid address or missing required fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+        '401':
+          description: Unauthorized - Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+      tags:
+        - comms-gatekeeper-openapi_Scene Bans
+    delete:
+      operationId: removeSceneBan
+      summary: Remove scene ban
+      description: >
+        Removes a ban from a user for a specific scene or world.
+
+        Only scene owners or administrators can remove bans.
+
+        Requires Signed Fetch authentication from decentraland-kernel-scene.
+
+        Must include the complete identity header chain:
+        x-identity-auth-chain-0, x-identity-auth-chain-1,
+        x-identity-auth-chain-2, x-identity-timestamp, and x-identity-metadata.
+      security:
+        - Comms_Gatekeeper_API_SignedFetch: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Comms_Gatekeeper_API_AddSceneBanRequest'
+      responses:
+        '204':
+          description: Ban removed successfully
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+        '401':
+          description: Unauthorized - Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+      tags:
+        - comms-gatekeeper-openapi_Scene Bans
+  /scene-bans/addresses:
+    servers:
+      - url: https://comms-gatekeeper.decentraland.org
+        description: Production server
+      - url: https://comms-gatekeeper.decentraland.zone
+        description: Development server
+    get:
+      operationId: listSceneBannedAddresses
+      summary: List banned addresses
+      description: >
+        Lists all banned addresses for a specific scene or world.
+
+        Only scene owners or administrators can access this endpoint.
+
+        Requires Signed Fetch authentication from decentraland-kernel-scene.
+
+        Must include the complete identity header chain:
+        x-identity-auth-chain-0, x-identity-auth-chain-1,
+        x-identity-auth-chain-2, x-identity-timestamp, and x-identity-metadata.
+      security:
+        - Comms_Gatekeeper_API_SignedFetch: []
+      responses:
+        '200':
+          description: Banned addresses retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: >-
+                  #/components/schemas/Comms_Gatekeeper_API_SceneBannedAddressesResponse
+        '401':
+          description: Unauthorized - Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+      tags:
+        - comms-gatekeeper-openapi_Scene Bans
+  /scene-stream-access:
+    servers:
+      - url: https://comms-gatekeeper.decentraland.org
+        description: Production server
+      - url: https://comms-gatekeeper.decentraland.zone
+        description: Development server
+    get:
+      operationId: getSceneStreamAccess
+      summary: List scene stream access
+      description: >
+        Lists streaming access information for a specific scene or world.
+
+        Only scene owners or administrators can access this endpoint.
+
+        Requires Signed Fetch authentication from decentraland-kernel-scene.
+
+        Must include the complete identity header chain:
+        x-identity-auth-chain-0, x-identity-auth-chain-1,
+        x-identity-auth-chain-2, x-identity-timestamp, and x-identity-metadata.
+      security:
+        - Comms_Gatekeeper_API_SignedFetch: []
+      responses:
+        '200':
+          description: Stream access information retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_SceneStreamAccess'
+        '401':
+          description: Unauthorized - Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+        '404':
+          description: Stream access not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+      tags:
+        - comms-gatekeeper-openapi_Scene Stream Access
+    post:
+      operationId: addSceneStreamAccess
+      summary: Add scene stream access
+      description: >
+        Adds streaming access for a specific scene or world.
+
+        Only scene owners or administrators can add stream access.
+
+        Requires Signed Fetch authentication from decentraland-kernel-scene.
+
+        Must include the complete identity header chain:
+        x-identity-auth-chain-0, x-identity-auth-chain-1,
+        x-identity-auth-chain-2, x-identity-timestamp, and x-identity-metadata.
+      security:
+        - Comms_Gatekeeper_API_SignedFetch: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: >-
+                #/components/schemas/Comms_Gatekeeper_API_AddSceneStreamAccessRequest
+      responses:
+        '201':
+          description: Stream access added successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_SceneStreamAccess'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+        '401':
+          description: Unauthorized - Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+      tags:
+        - comms-gatekeeper-openapi_Scene Stream Access
+    delete:
+      operationId: removeSceneStreamAccess
+      summary: Remove scene stream access
+      description: >
+        Removes streaming access for a specific scene or world.
+
+        Only scene owners or administrators can remove stream access.
+
+        Requires Signed Fetch authentication from decentraland-kernel-scene.
+
+        Must include the complete identity header chain:
+        x-identity-auth-chain-0, x-identity-auth-chain-1,
+        x-identity-auth-chain-2, x-identity-timestamp, and x-identity-metadata.
+      security:
+        - Comms_Gatekeeper_API_SignedFetch: []
+      responses:
+        '204':
+          description: Stream access removed successfully
+        '401':
+          description: Unauthorized - Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+        '404':
+          description: Stream access not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+      tags:
+        - comms-gatekeeper-openapi_Scene Stream Access
+    put:
+      operationId: resetSceneStreamAccess
+      summary: Reset scene stream access
+      description: >
+        Resets streaming access for a specific scene or world.
+
+        This will stop any active streaming and reset the access configuration.
+
+        Only scene owners or administrators can reset stream access.
+
+        Requires Signed Fetch authentication from decentraland-kernel-scene.
+
+        Must include the complete identity header chain:
+        x-identity-auth-chain-0, x-identity-auth-chain-1,
+        x-identity-auth-chain-2, x-identity-timestamp, and x-identity-metadata.
+      security:
+        - Comms_Gatekeeper_API_SignedFetch: []
+      responses:
+        '204':
+          description: Stream access reset successfully
+        '401':
+          description: Unauthorized - Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+        '404':
+          description: Stream access not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+      tags:
+        - comms-gatekeeper-openapi_Scene Stream Access
+  /livekit-webhook:
+    servers:
+      - url: https://comms-gatekeeper.decentraland.org
+        description: Production server
+      - url: https://comms-gatekeeper.decentraland.zone
+        description: Development server
+    post:
+      operationId: livekitWebhook
+      summary: LiveKit webhook
+      description: >
+        Webhook endpoint for LiveKit events.
+
+        This endpoint receives events from LiveKit when participants join/leave
+        rooms,
+
+        streaming starts/stops, etc.
+
+        No authentication required - this is a webhook endpoint.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Comms_Gatekeeper_API_LivekitWebhookRequest'
+      responses:
+        '200':
+          description: Webhook processed successfully
+        '400':
+          description: Invalid webhook payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+      tags:
+        - comms-gatekeeper-openapi_Webhooks
+  /private-messages/token:
+    servers:
+      - url: https://comms-gatekeeper.decentraland.org
+        description: Production server
+      - url: https://comms-gatekeeper.decentraland.zone
+        description: Development server
+    get:
+      operationId: getPrivateMessagesToken
+      summary: Get private messages token
+      description: >
+        Generates a LiveKit token for accessing private messages.
+
+        This endpoint checks user privacy settings and generates appropriate
+        credentials.
+
+        Requires Signed Fetch authentication from dcl:explorer.
+
+        Must include the complete identity header chain:
+        x-identity-auth-chain-0, x-identity-auth-chain-1,
+        x-identity-auth-chain-2, x-identity-timestamp, and x-identity-metadata.
+      security:
+        - Comms_Gatekeeper_API_SignedFetchExplorer: []
+      responses:
+        '200':
+          description: Private messages token generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: >-
+                  #/components/schemas/Comms_Gatekeeper_API_PrivateMessagesTokenResponse
+        '401':
+          description: Unauthorized - Invalid authentication or blacklisted user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+      tags:
+        - comms-gatekeeper-openapi_Private Messages
+  /users/{address}/private-messages-privacy:
+    servers:
+      - url: https://comms-gatekeeper.decentraland.org
+        description: Production server
+      - url: https://comms-gatekeeper.decentraland.zone
+        description: Development server
+    patch:
+      operationId: updatePrivateMessagesPrivacy
+      summary: Update user private messages privacy
+      description: |
+        Updates the privacy settings for a user's private messages.
+        This affects who can send private messages to the user.
+        Requires Bearer Token authentication.
+      security:
+        - Comms_Gatekeeper_API_BearerAuth: []
+      parameters:
+        - name: address
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ETH address of the user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: >-
+                #/components/schemas/Comms_Gatekeeper_API_UpdatePrivateMessagesPrivacyRequest
+      responses:
+        '204':
+          description: Privacy settings updated successfully
+        '400':
+          description: Invalid request - Invalid address or privacy setting
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+        '401':
+          description: Unauthorized - Invalid token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+      tags:
+        - comms-gatekeeper-openapi_Private Messages
+  /users/{address}/voice-chat-status:
+    servers:
+      - url: https://comms-gatekeeper.decentraland.org
+        description: Production server
+      - url: https://comms-gatekeeper.decentraland.zone
+        description: Development server
+    get:
+      operationId: getUserVoiceChatStatus
+      summary: Get user voice chat status
+      description: |
+        Checks if a user is currently in a voice chat.
+        Requires Bearer Token authentication.
+      security:
+        - Comms_Gatekeeper_API_BearerAuth: []
+      parameters:
+        - name: address
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ETH address of the user
+      responses:
+        '200':
+          description: Voice chat status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: >-
+                  #/components/schemas/Comms_Gatekeeper_API_VoiceChatStatusResponse
+        '400':
+          description: Invalid request - Invalid address
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+        '401':
+          description: Unauthorized - Invalid token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+      tags:
+        - comms-gatekeeper-openapi_Private Voice Chat
+  /private-voice-chat:
+    servers:
+      - url: https://comms-gatekeeper.decentraland.org
+        description: Production server
+      - url: https://comms-gatekeeper.decentraland.zone
+        description: Development server
+    post:
+      operationId: createPrivateVoiceChat
+      summary: Create private voice chat
+      description: |
+        Creates a private voice chat room for two users.
+        Generates LiveKit credentials for both users to join the room.
+        Requires Bearer Token authentication.
+      security:
+        - Comms_Gatekeeper_API_BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: >-
+                #/components/schemas/Comms_Gatekeeper_API_CreatePrivateVoiceChatRequest
+      responses:
+        '200':
+          description: Private voice chat created successfully
+          content:
+            application/json:
+              schema:
+                $ref: >-
+                  #/components/schemas/Comms_Gatekeeper_API_CreatePrivateVoiceChatResponse
+        '400':
+          description: Invalid request - Invalid addresses or room ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+        '401':
+          description: Unauthorized - Invalid token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+      tags:
+        - comms-gatekeeper-openapi_Private Voice Chat
+  /private-voice-chat/{id}:
+    servers:
+      - url: https://comms-gatekeeper.decentraland.org
+        description: Production server
+      - url: https://comms-gatekeeper.decentraland.zone
+        description: Development server
+    delete:
+      operationId: deletePrivateVoiceChat
+      summary: Delete private voice chat
+      description: |
+        Ends a private voice chat room.
+        This will disconnect all participants from the room.
+        Requires Bearer Token authentication.
+      security:
+        - Comms_Gatekeeper_API_BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Room ID of the private voice chat
+      responses:
+        '204':
+          description: Private voice chat ended successfully
+        '401':
+          description: Unauthorized - Invalid token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+        '404':
+          description: Private voice chat not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+      tags:
+        - comms-gatekeeper-openapi_Private Voice Chat
+  /users/{userAddress}/community-voice-chat-status:
+    servers:
+      - url: https://comms-gatekeeper.decentraland.org
+        description: Production server
+      - url: https://comms-gatekeeper.decentraland.zone
+        description: Development server
+    get:
+      operationId: checkUserCommunityVoiceChatStatus
+      summary: Check user community voice chat status
+      description: |
+        Checks if a user is currently in any community voice chat.
+        Requires Bearer Token authentication.
+      security:
+        - Comms_Gatekeeper_API_BearerAuth: []
+      parameters:
+        - name: userAddress
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ETH address of the user
+      responses:
+        '200':
+          description: Community voice chat status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: >-
+                  #/components/schemas/Comms_Gatekeeper_API_VoiceChatStatusResponse
+        '400':
+          description: Invalid request - Invalid address
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+        '401':
+          description: Unauthorized - Invalid token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+      tags:
+        - comms-gatekeeper-openapi_Community Voice Chat
+  /community-voice-chat:
+    servers:
+      - url: https://comms-gatekeeper.decentraland.org
+        description: Production server
+      - url: https://comms-gatekeeper.decentraland.zone
+        description: Development server
+    post:
+      operationId: createOrJoinCommunityVoiceChat
+      summary: Create or join community voice chat
+      description: >
+        Creates a new community voice chat or joins an existing one.
+
+        The user's role in the community determines their permissions in the
+        voice chat.
+
+        Requires Bearer Token authentication.
+      security:
+        - Comms_Gatekeeper_API_BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: >-
+                #/components/schemas/Comms_Gatekeeper_API_CommunityVoiceChatRequest
+      responses:
+        '200':
+          description: Community voice chat credentials generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: >-
+                  #/components/schemas/Comms_Gatekeeper_API_CommunityVoiceChatResponse
+        '400':
+          description: Invalid request - Invalid community ID, address, or action
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+        '401':
+          description: Unauthorized - Invalid token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+      tags:
+        - comms-gatekeeper-openapi_Community Voice Chat
+  /community-voice-chat/{communityId}/status:
+    servers:
+      - url: https://comms-gatekeeper.decentraland.org
+        description: Production server
+      - url: https://comms-gatekeeper.decentraland.zone
+        description: Development server
+    get:
+      operationId: getCommunityVoiceChatStatus
+      summary: Get community voice chat status
+      description: >
+        Gets the current status of a community voice chat including participant
+        counts.
+
+        Requires Bearer Token authentication.
+      security:
+        - Comms_Gatekeeper_API_BearerAuth: []
+      parameters:
+        - name: communityId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID of the community
+      responses:
+        '200':
+          description: Community voice chat status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: >-
+                  #/components/schemas/Comms_Gatekeeper_API_CommunityVoiceChatStatusResponse
+        '400':
+          description: Invalid request - Invalid community ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+        '401':
+          description: Unauthorized - Invalid token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+      tags:
+        - comms-gatekeeper-openapi_Community Voice Chat
+  /community-voice-chat/active:
+    servers:
+      - url: https://comms-gatekeeper.decentraland.org
+        description: Production server
+      - url: https://comms-gatekeeper.decentraland.zone
+        description: Development server
+    get:
+      operationId: getAllActiveCommunityVoiceChats
+      summary: Get all active community voice chats
+      description: |
+        Lists all currently active community voice chats.
+        Requires Bearer Token authentication.
+      security:
+        - Comms_Gatekeeper_API_BearerAuth: []
+      responses:
+        '200':
+          description: Active community voice chats retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: >-
+                  #/components/schemas/Comms_Gatekeeper_API_GetAllActiveCommunityVoiceChatsResponse
+        '401':
+          description: Unauthorized - Invalid token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+      tags:
+        - comms-gatekeeper-openapi_Community Voice Chat
+  /community-voice-chat/{communityId}/users/{userAddress}/speak-request:
+    servers:
+      - url: https://comms-gatekeeper.decentraland.org
+        description: Production server
+      - url: https://comms-gatekeeper.decentraland.zone
+        description: Development server
+    post:
+      operationId: requestToSpeak
+      summary: Request to speak
+      description: |
+        Requests permission to speak in a community voice chat.
+        Only listeners can request to speak.
+        Requires Bearer Token authentication.
+      security:
+        - Comms_Gatekeeper_API_BearerAuth: []
+      parameters:
+        - name: communityId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID of the community
+        - name: userAddress
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ETH address of the user requesting to speak
+      responses:
+        '204':
+          description: Speak request submitted successfully
+        '400':
+          description: Invalid request - Invalid community ID or address
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+        '401':
+          description: Unauthorized - Invalid token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+      tags:
+        - comms-gatekeeper-openapi_Community Voice Chat
+    delete:
+      operationId: rejectSpeakRequest
+      summary: Reject speak request
+      description: |
+        Rejects a user's request to speak in a community voice chat.
+        Only moderators can reject speak requests.
+        Requires Bearer Token authentication.
+      security:
+        - Comms_Gatekeeper_API_BearerAuth: []
+      parameters:
+        - name: communityId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID of the community
+        - name: userAddress
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ETH address of the user whose speak request is being rejected
+      responses:
+        '204':
+          description: Speak request rejected successfully
+        '400':
+          description: Invalid request - Invalid community ID or address
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+        '401':
+          description: Unauthorized - Invalid token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+      tags:
+        - comms-gatekeeper-openapi_Community Voice Chat
+  /community-voice-chat/{communityId}/users/{userAddress}/speaker:
+    servers:
+      - url: https://comms-gatekeeper.decentraland.org
+        description: Production server
+      - url: https://comms-gatekeeper.decentraland.zone
+        description: Development server
+    post:
+      operationId: promoteSpeaker
+      summary: Promote to speaker
+      description: |
+        Promotes a user to speaker in a community voice chat.
+        Only moderators can promote users to speakers.
+        Requires Bearer Token authentication.
+      security:
+        - Comms_Gatekeeper_API_BearerAuth: []
+      parameters:
+        - name: communityId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID of the community
+        - name: userAddress
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ETH address of the user to promote
+      responses:
+        '204':
+          description: User promoted to speaker successfully
+        '400':
+          description: Invalid request - Invalid community ID or address
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+        '401':
+          description: Unauthorized - Invalid token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+      tags:
+        - comms-gatekeeper-openapi_Community Voice Chat
+    delete:
+      operationId: demoteSpeaker
+      summary: Demote from speaker
+      description: |
+        Demotes a speaker to listener in a community voice chat.
+        Only moderators can demote speakers.
+        Requires Bearer Token authentication.
+      security:
+        - Comms_Gatekeeper_API_BearerAuth: []
+      parameters:
+        - name: communityId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID of the community
+        - name: userAddress
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ETH address of the user to demote
+      responses:
+        '204':
+          description: User demoted from speaker successfully
+        '400':
+          description: Invalid request - Invalid community ID or address
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+        '401':
+          description: Unauthorized - Invalid token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+      tags:
+        - comms-gatekeeper-openapi_Community Voice Chat
+  /community-voice-chat/{communityId}/users/{userAddress}:
+    servers:
+      - url: https://comms-gatekeeper.decentraland.org
+        description: Production server
+      - url: https://comms-gatekeeper.decentraland.zone
+        description: Development server
+    delete:
+      operationId: kickPlayer
+      summary: Kick player from community voice chat
+      description: |
+        Kicks a player from a community voice chat.
+        Only moderators can kick players.
+        Requires Bearer Token authentication.
+      security:
+        - Comms_Gatekeeper_API_BearerAuth: []
+      parameters:
+        - name: communityId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID of the community
+        - name: userAddress
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ETH address of the user to kick
+      responses:
+        '204':
+          description: Player kicked successfully
+        '400':
+          description: Invalid request - Invalid community ID or address
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+        '401':
+          description: Unauthorized - Invalid token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+      tags:
+        - comms-gatekeeper-openapi_Community Voice Chat
+  /community-voice-chat/{communityId}:
+    servers:
+      - url: https://comms-gatekeeper.decentraland.org
+        description: Production server
+      - url: https://comms-gatekeeper.decentraland.zone
+        description: Development server
+    delete:
+      operationId: endCommunityVoiceChat
+      summary: End community voice chat
+      description: |
+        Ends a community voice chat, disconnecting all participants.
+        Only moderators can end community voice chats.
+        Requires Bearer Token authentication.
+      security:
+        - Comms_Gatekeeper_API_BearerAuth: []
+      parameters:
+        - name: communityId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID of the community
+      responses:
+        '204':
+          description: Community voice chat ended successfully
+        '400':
+          description: Invalid request - Invalid community ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+        '401':
+          description: Unauthorized - Invalid token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comms_Gatekeeper_API_ErrorResponse'
+      tags:
+        - comms-gatekeeper-openapi_Community Voice Chat
+components:
+  securitySchemes:
+    Social_Service_API_SignedFetch:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: |
+        Signed Fetch authentication.
+        See ADR-44 for more details about the authentication mechanism.
+    Social_Service_API_BearerAuth:
+      type: http
+      scheme: bearer
+      description: |
+        Bearer token authentication for admin endpoints.
+        Requires API_ADMIN_TOKEN.
+    Comms_Gatekeeper_API_SignedFetch:
+      type: apiKey
+      in: header
+      name: x-identity
+      description: |
+        Signed Fetch authentication for scene-based requests.
+        Requires a chain of identity headers:
+        - x-identity-auth-chain-0: Signer information
+        - x-identity-auth-chain-1: Ephemeral key information  
+        - x-identity-auth-chain-2: Signed entity information
+        - x-identity-timestamp: Request timestamp
+        - x-identity-metadata: Request metadata
+        Used for authentication from decentraland-kernel-scene.
+    Comms_Gatekeeper_API_SignedFetchExplorer:
+      type: apiKey
+      in: header
+      name: x-identity
+      description: |
+        Signed Fetch authentication for Explorer-based requests.
+        Requires a chain of identity headers:
+        - x-identity-auth-chain-0: Signer information
+        - x-identity-auth-chain-1: Ephemeral key information  
+        - x-identity-auth-chain-2: Signed entity information
+        - x-identity-timestamp: Request timestamp
+        - x-identity-metadata: Request metadata
+        Used for authentication from dcl:explorer.
+    Comms_Gatekeeper_API_BearerAuth:
+      type: http
+      scheme: bearer
+      description: |
+        Bearer token authentication for service-to-service communication.
+        Requires COMMS_GATEKEEPER_AUTH_TOKEN.
+  schemas:
+    Social_Service_API_PaginatedResponse:
+      type: object
+      required:
+        - results
+        - total
+        - limit
+        - offset
+      properties:
+        results:
+          type: array
+          items:
+            type: object
+        total:
+          type: integer
+          description: Total number of items
+        limit:
+          type: integer
+          description: Number of items per page
+        offset:
+          type: integer
+          description: Number of items skipped
+    Social_Service_API_GetCommunities200OkResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          allOf:
+            - $ref: '#/components/schemas/Social_Service_API_PaginatedResponse'
+            - type: object
+              properties:
+                results:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - id
+                      - name
+                      - description
+                      - ownerAddress
+                      - privacy
+                      - active
+                      - membersCount
+                      - thumbnails
+                    properties:
+                      id:
+                        type: string
+                      name:
+                        type: string
+                      description:
+                        type: string
+                      ownerAddress:
+                        type: string
+                      privacy:
+                        type: string
+                        enum:
+                          - public
+                          - private
+                      active:
+                        type: boolean
+                      membersCount:
+                        type: integer
+                      thumbnails:
+                        type: object
+                        additionalProperties:
+                          type: string
+                        description: >-
+                          A map of thumbnail types to URLs. The key is the
+                          thumbnail type (e.g. "raw") and the value is the URL.
+                      friends:
+                        type: array
+                        items:
+                          type: string
+                          description: |
+                            ETH Address of a friend of the community.
+                            This is only present when the user is signed in.
+                      role:
+                        type: string
+                        enum:
+                          - Owner
+                          - Moderator
+                          - Member
+                          - None
+                        description: |
+                          The role of the user in the community.
+                          This is only present when the user is signed in.
+    Social_Service_API_ErrorResponse:
+      type: object
+      required:
+        - message
+        - error
+      properties:
+        message:
+          type: string
+          description: A message describing the error
+        error:
+          type: string
+          description: Error code (e.g. Not Found, Invalid Request, Unauthorized, etc.)
+    Social_Service_API_CreateCommunity201OkResponse:
+      type: object
+      required:
+        - message
+        - data
+      properties:
+        message:
+          type: string
+          description: A message describing the result
+        data:
+          type: object
+          required:
+            - id
+            - name
+            - description
+            - ownerAddress
+            - privacy
+            - active
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            description:
+              type: string
+            ownerAddress:
+              type: string
+            privacy:
+              type: string
+              enum:
+                - public
+                - private
+            active:
+              type: boolean
+            thumbnails:
+              type: object
+              additionalProperties:
+                type: string
+              description: >-
+                A map of thumbnail types to URLs. The key is the thumbnail type
+                (e.g. "raw") and the value is the URL.
+    Social_Service_API_GetCommunityById200OkResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - id
+            - name
+            - description
+            - ownerAddress
+            - privacy
+            - active
+            - membersCount
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            description:
+              type: string
+            ownerAddress:
+              type: string
+              description: ETH Address of the community owner
+            privacy:
+              type: string
+              enum:
+                - public
+                - private
+            active:
+              type: boolean
+              description: Whether the community is active or it was logically deleted
+            membersCount:
+              type: integer
+              description: Number of members in the community
+            thumbnails:
+              type: object
+              additionalProperties:
+                type: string
+              description: >-
+                A map of thumbnail types to URLs. The key is the thumbnail type
+                (e.g. "raw") and the value is the URL.
+    Social_Service_API_UpdateCommunity200OkResponse:
+      type: object
+      required:
+        - message
+        - data
+      properties:
+        message:
+          type: string
+          description: A message describing the result
+        data:
+          type: object
+          required:
+            - id
+            - name
+            - description
+            - ownerAddress
+            - privacy
+            - active
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            description:
+              type: string
+            ownerAddress:
+              type: string
+            privacy:
+              type: string
+              enum:
+                - public
+                - private
+            active:
+              type: boolean
+            thumbnails:
+              type: object
+              additionalProperties:
+                type: string
+              description: >-
+                A map of thumbnail types to URLs. The key is the thumbnail type
+                (e.g. "raw") and the value is the URL.
+    Social_Service_API_GetCommunityMembers200OkResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          allOf:
+            - $ref: '#/components/schemas/Social_Service_API_PaginatedResponse'
+            - type: object
+              properties:
+                results:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - address
+                      - role
+                      - joinedAt
+                    properties:
+                      address:
+                        type: string
+                        description: ETH Address of the member
+                      role:
+                        type: string
+                        enum:
+                          - Owner
+                          - Moderator
+                          - Member
+                        description: Role of the member in the community
+                      joinedAt:
+                        type: string
+                        format: date-time
+                        description: When the member joined the community
+    Social_Service_API_GetMemberCommunities200OkResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          allOf:
+            - $ref: '#/components/schemas/Social_Service_API_PaginatedResponse'
+            - type: object
+              properties:
+                results:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - id
+                      - name
+                      - description
+                      - ownerAddress
+                      - privacy
+                      - active
+                      - role
+                    properties:
+                      id:
+                        type: string
+                      name:
+                        type: string
+                      description:
+                        type: string
+                      ownerAddress:
+                        type: string
+                      privacy:
+                        type: string
+                        enum:
+                          - public
+                          - private
+                      active:
+                        type: boolean
+                      role:
+                        type: string
+                        enum:
+                          - Owner
+                          - Moderator
+                          - Member
+    Social_Service_API_GetBannedMembers200OkResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          allOf:
+            - $ref: '#/components/schemas/Social_Service_API_PaginatedResponse'
+            - type: object
+              properties:
+                results:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - address
+                      - bannedAt
+                    properties:
+                      address:
+                        type: string
+                        description: ETH Address of the banned member
+                      bannedAt:
+                        type: string
+                        format: date-time
+                        description: When the member was banned
+    Social_Service_API_CommunityPlace:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier of the place
+    Social_Service_API_GetCommunityPlaces200OkResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          allOf:
+            - $ref: '#/components/schemas/Social_Service_API_PaginatedResponse'
+            - type: object
+              properties:
+                results:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Social_Service_API_CommunityPlace'
+    Social_Service_API_GetManagedCommunities200OkResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          allOf:
+            - $ref: '#/components/schemas/Social_Service_API_PaginatedResponse'
+            - type: object
+              properties:
+                results:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - id
+                      - name
+                      - ownerAddress
+                      - active
+                      - role
+                      - thumbnails
+                    properties:
+                      id:
+                        type: string
+                      name:
+                        type: string
+                      ownerAddress:
+                        type: string
+                      active:
+                        type: boolean
+                      role:
+                        type: string
+                        enum:
+                          - Owner
+                          - Moderator
+                      thumbnails:
+                        type: object
+                        additionalProperties:
+                          type: string
+                        description: >-
+                          A map of thumbnail types to URLs. The key is the
+                          thumbnail type (e.g. "raw") and the value is the URL.
+    Social_Service_API_GetReferralStats200OkResponse:
+      type: object
+      required:
+        - invitedUsersAccepted
+        - invitedUsersAcceptedViewed
+        - rewardImages
+      properties:
+        invitedUsersAccepted:
+          type: integer
+          description: Current total number of users invited by the referral
+        invitedUsersAcceptedViewed:
+          type: integer
+          description: Total number of invited users recorded in the previous fetch
+        rewardImages:
+          type: array
+          description: Images url for each tier reached
+          items:
+            type: object
+    Social_Service_API_GetCommunityRequests200OkResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          allOf:
+            - $ref: '#/components/schemas/Social_Service_API_PaginatedResponse'
+            - type: object
+              properties:
+                results:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - id
+                      - communityId
+                      - memberAddress
+                      - type
+                      - status
+                      - name
+                      - hasClaimedName
+                      - profilePictureUrl
+                      - friendshipStatus
+                    properties:
+                      id:
+                        type: string
+                        description: Unique identifier of the community request
+                      communityId:
+                        type: string
+                        description: ID of the community
+                      memberAddress:
+                        type: string
+                        description: >-
+                          ETH address of the member who made/received the
+                          request
+                      type:
+                        type: string
+                        enum:
+                          - invite
+                          - request_to_join
+                        description: Type of request
+                      status:
+                        type: string
+                        enum:
+                          - pending
+                          - accepted
+                          - rejected
+                          - cancelled
+                        description: Status of the request
+                      name:
+                        type: string
+                        description: Display name of the member
+                      hasClaimedName:
+                        type: boolean
+                        description: Whether the member has claimed their name
+                      profilePictureUrl:
+                        type: string
+                        description: URL of the member profile picture
+                      friendshipStatus:
+                        type: integer
+                        description: >-
+                          Friendship status code between the authenticated user
+                          and the member
+    Social_Service_API_CreateCommunityRequest200OkResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - id
+            - communityId
+            - memberAddress
+            - type
+            - status
+          properties:
+            id:
+              type: string
+              description: Unique identifier of the community request
+            communityId:
+              type: string
+              description: ID of the community
+            memberAddress:
+              type: string
+              description: ETH address of the member
+            type:
+              type: string
+              enum:
+                - invite
+                - request_to_join
+              description: Type of request
+            status:
+              type: string
+              enum:
+                - pending
+                - accepted
+                - rejected
+                - cancelled
+              description: Status of the request
+    Social_Service_API_UpdateCommunityRequestStatusRequest:
+      type: object
+      required:
+        - intention
+      properties:
+        intention:
+          type: string
+          enum:
+            - accepted
+            - rejected
+            - cancelled
+          description: Action to perform on the community request
+    Social_Service_API_GetMemberRequests200OkResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          allOf:
+            - $ref: '#/components/schemas/Social_Service_API_PaginatedResponse'
+            - type: object
+              properties:
+                results:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - id
+                      - communityId
+                      - memberAddress
+                      - type
+                      - status
+                      - name
+                      - description
+                      - ownerAddress
+                      - ownerName
+                      - privacy
+                      - membersCount
+                      - role
+                      - active
+                      - friends
+                      - voiceChatStatus
+                    properties:
+                      id:
+                        type: string
+                        description: Unique identifier of the community request
+                      communityId:
+                        type: string
+                        description: ID of the community
+                      memberAddress:
+                        type: string
+                        description: >-
+                          ETH address of the member for whom the request was
+                          made
+                      type:
+                        type: string
+                        enum:
+                          - invite
+                          - request_to_join
+                        description: Type of request (invite received or join request sent)
+                      status:
+                        type: string
+                        enum:
+                          - pending
+                          - accepted
+                          - rejected
+                          - cancelled
+                        description: Status of the request
+                      name:
+                        type: string
+                        description: Name of the community
+                      description:
+                        type: string
+                        description: Description of the community
+                      ownerAddress:
+                        type: string
+                        description: ETH address of the community owner
+                      ownerName:
+                        type: string
+                        description: Display name of the community owner
+                      privacy:
+                        type: string
+                        enum:
+                          - public
+                          - private
+                        description: Privacy setting of the community
+                      membersCount:
+                        type: integer
+                        description: Total number of members in the community
+                      role:
+                        type: string
+                        enum:
+                          - none
+                          - Member
+                          - Moderator
+                          - Owner
+                        description: Current role of the user in this community
+                      active:
+                        type: boolean
+                        description: Whether the community is active
+                      friends:
+                        type: array
+                        items:
+                          type: string
+                        description: List of friends who are members of this community
+                      voiceChatStatus:
+                        type: object
+                        required:
+                          - isActive
+                          - participantCount
+                          - moderatorCount
+                        properties:
+                          isActive:
+                            type: boolean
+                            description: >-
+                              Whether there is an active voice chat in the
+                              community
+                          participantCount:
+                            type: integer
+                            description: Number of participants in the voice chat
+                          moderatorCount:
+                            type: integer
+                            description: Number of moderators in the voice chat
+                        description: Voice chat status information for the community
+                      thumbnails:
+                        type: object
+                        additionalProperties:
+                          type: string
+                        description: A map of thumbnail types to URLs for the community
+    Social_Service_API_GetActiveCommunityVoiceChats200OkResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - activeChats
+            - total
+          properties:
+            activeChats:
+              type: array
+              items:
+                type: object
+                required:
+                  - communityId
+                  - participantCount
+                  - moderatorCount
+                  - isMember
+                  - communityName
+                  - positions
+                  - worlds
+                properties:
+                  communityId:
+                    type: string
+                    description: ID of the community
+                  participantCount:
+                    type: integer
+                    description: Number of participants in the voice chat
+                  moderatorCount:
+                    type: integer
+                    description: Number of moderators in the voice chat
+                  isMember:
+                    type: boolean
+                    description: Whether the user is a member of the community
+                  communityName:
+                    type: string
+                    description: Name of the community
+                  communityImage:
+                    type: string
+                    description: URL of the community image
+                  positions:
+                    type: array
+                    items:
+                      type: string
+                    description: Array of position coordinates
+                  worlds:
+                    type: array
+                    items:
+                      type: string
+                    description: Array of world identifiers
+            total:
+              type: integer
+              description: Total number of active voice chats
+    Comms_Gatekeeper_API_PingResponse:
+      type: string
+      description: The pathname that was pinged
+    Comms_Gatekeeper_API_ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Error message describing what went wrong
+    Comms_Gatekeeper_API_StatusResponse:
+      type: object
+      required:
+        - version
+        - currentTime
+        - commitHash
+      properties:
+        version:
+          type: string
+          description: Current version of the service
+        currentTime:
+          type: integer
+          format: int64
+          description: Current timestamp in milliseconds
+        commitHash:
+          type: string
+          description: Git commit hash of the current deployment
+    Comms_Gatekeeper_API_SceneAdapterResponse:
+      type: object
+      required:
+        - adapter
+      properties:
+        adapter:
+          type: string
+          description: LiveKit connection URL for the scene
+    Comms_Gatekeeper_API_SceneAdmin:
+      type: object
+      required:
+        - admin
+        - name
+        - canBeRemoved
+      properties:
+        admin:
+          type: string
+          description: ETH address of the admin
+        name:
+          type: string
+          description: Display name of the admin
+        canBeRemoved:
+          type: boolean
+          description: Whether this admin can be removed (false for land lease owners)
+    Comms_Gatekeeper_API_AddSceneAdminRequest:
+      type: object
+      required:
+        - admin
+      properties:
+        admin:
+          type: string
+          description: ETH address of the admin to add
+    Comms_Gatekeeper_API_SceneBan:
+      type: object
+      required:
+        - id
+        - place_id
+        - banned_address
+        - banned_by
+        - banned_at
+      properties:
+        id:
+          type: string
+          description: Unique identifier of the ban
+        place_id:
+          type: string
+          description: ID of the place where the ban applies
+        banned_address:
+          type: string
+          description: ETH address of the banned user
+        banned_by:
+          type: string
+          description: ETH address of the user who created the ban
+        banned_at:
+          type: integer
+          format: int64
+          description: Timestamp when the ban was created
+    Comms_Gatekeeper_API_ListSceneBansResponse:
+      type: object
+      required:
+        - results
+        - total
+        - page
+        - pages
+        - limit
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Comms_Gatekeeper_API_SceneBan'
+        total:
+          type: integer
+          description: Total number of bans
+        page:
+          type: integer
+          description: Current page number
+        pages:
+          type: integer
+          description: Total number of pages
+        limit:
+          type: integer
+          description: Number of items per page
+    Comms_Gatekeeper_API_AddSceneBanRequest:
+      type: object
+      required:
+        - banned_address
+      properties:
+        banned_address:
+          type: string
+          description: ETH address of the user to ban
+    Comms_Gatekeeper_API_SceneBannedAddressesResponse:
+      type: object
+      required:
+        - bannedAddresses
+      properties:
+        bannedAddresses:
+          type: array
+          items:
+            type: string
+          description: Array of banned ETH addresses
+    Comms_Gatekeeper_API_SceneStreamAccess:
+      type: object
+      required:
+        - id
+        - place_id
+        - streaming_key
+        - streaming_url
+        - ingress_id
+        - created_at
+        - active
+        - streaming
+        - streaming_start_time
+      properties:
+        id:
+          type: string
+          description: Unique identifier of the stream access
+        place_id:
+          type: string
+          description: ID of the place
+        streaming_key:
+          type: string
+          description: Streaming key for the stream
+        streaming_url:
+          type: string
+          description: URL for the stream
+        ingress_id:
+          type: string
+          description: LiveKit ingress ID
+        created_at:
+          type: integer
+          format: int64
+          description: Timestamp when the access was created
+        active:
+          type: boolean
+          description: Whether the stream access is active
+        streaming:
+          type: boolean
+          description: Whether the stream is currently active
+        streaming_start_time:
+          type: integer
+          format: int64
+          description: Timestamp when streaming started
+    Comms_Gatekeeper_API_AddSceneStreamAccessRequest:
+      type: object
+      required:
+        - streaming_url
+        - streaming_key
+        - ingress_id
+      properties:
+        streaming_url:
+          type: string
+          description: URL for the stream
+        streaming_key:
+          type: string
+          description: Streaming key for the stream
+        ingress_id:
+          type: string
+          description: LiveKit ingress ID
+    Comms_Gatekeeper_API_LivekitWebhookRequest:
+      type: object
+      description: LiveKit webhook payload (structure depends on webhook type)
+      additionalProperties: true
+    Comms_Gatekeeper_API_PrivateMessagesTokenResponse:
+      type: object
+      required:
+        - adapter
+      properties:
+        adapter:
+          type: string
+          description: LiveKit connection URL for private messages
+    Comms_Gatekeeper_API_UpdatePrivateMessagesPrivacyRequest:
+      type: object
+      required:
+        - private_messages_privacy
+      properties:
+        private_messages_privacy:
+          type: string
+          enum:
+            - all
+            - only_friends
+          description: Privacy setting for private messages
+    Comms_Gatekeeper_API_VoiceChatStatusResponse:
+      type: object
+      required:
+        - is_user_in_voice_chat
+      properties:
+        is_user_in_voice_chat:
+          type: boolean
+          description: Whether the user is currently in a voice chat
+    Comms_Gatekeeper_API_CreatePrivateVoiceChatRequest:
+      type: object
+      required:
+        - user_addresses
+        - room_id
+      properties:
+        user_addresses:
+          type: array
+          items:
+            type: string
+          minItems: 2
+          maxItems: 2
+          description: Array of exactly 2 ETH addresses for the private voice chat
+        room_id:
+          type: string
+          description: Unique identifier for the voice chat room
+    Comms_Gatekeeper_API_CreatePrivateVoiceChatResponse:
+      type: object
+      additionalProperties:
+        type: object
+        required:
+          - connection_url
+        properties:
+          connection_url:
+            type: string
+            description: LiveKit connection URL for the user
+      description: Object with user addresses as keys and connection URLs as values
+    Comms_Gatekeeper_API_CommunityVoiceChatAction:
+      type: string
+      enum:
+        - create
+        - join
+        - request-to-speak
+        - promote-speaker
+        - demote-speaker
+        - kick-player
+      description: Action to perform in community voice chat
+    Comms_Gatekeeper_API_CommunityRole:
+      type: string
+      enum:
+        - owner
+        - moderator
+        - member
+        - none
+      description: Role of the user in the community
+    Comms_Gatekeeper_API_CommunityVoiceChatUserProfileMetadata:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Display name of the user
+        hasClaimedName:
+          type: boolean
+          description: Whether the user has claimed their name
+        profilePictureUrl:
+          type: string
+          description: URL of the user profile picture
+    Comms_Gatekeeper_API_CommunityVoiceChatRequest:
+      type: object
+      required:
+        - community_id
+        - user_address
+        - action
+      properties:
+        community_id:
+          type: string
+          description: ID of the community
+        user_address:
+          type: string
+          description: ETH address of the user
+        action:
+          $ref: '#/components/schemas/Comms_Gatekeeper_API_CommunityVoiceChatAction'
+        user_role:
+          $ref: '#/components/schemas/Comms_Gatekeeper_API_CommunityRole'
+          description: Role of the user in the community (defaults to none)
+        profile_data:
+          $ref: >-
+            #/components/schemas/Comms_Gatekeeper_API_CommunityVoiceChatUserProfileMetadata
+          description: Optional profile data for the user
+    Comms_Gatekeeper_API_CommunityVoiceChatResponse:
+      type: object
+      required:
+        - connection_url
+      properties:
+        connection_url:
+          type: string
+          description: LiveKit connection URL for the community voice chat
+    Comms_Gatekeeper_API_CommunityVoiceChatStatusResponse:
+      type: object
+      required:
+        - active
+        - participantCount
+        - moderatorCount
+      properties:
+        active:
+          type: boolean
+          description: Whether the community voice chat is active
+        participantCount:
+          type: integer
+          description: Number of participants in the voice chat
+        moderatorCount:
+          type: integer
+          description: Number of moderators in the voice chat
+    Comms_Gatekeeper_API_ActiveCommunityVoiceChat:
+      type: object
+      required:
+        - communityId
+        - participantCount
+        - moderatorCount
+      properties:
+        communityId:
+          type: string
+          description: ID of the community
+        participantCount:
+          type: integer
+          description: Number of participants in the voice chat
+        moderatorCount:
+          type: integer
+          description: Number of moderators in the voice chat
+    Comms_Gatekeeper_API_GetAllActiveCommunityVoiceChatsResponse:
+      type: object
+      required:
+        - activeChats
+        - total
+      properties:
+        activeChats:
+          type: array
+          items:
+            $ref: '#/components/schemas/Comms_Gatekeeper_API_ActiveCommunityVoiceChat'
+        total:
+          type: integer
+          description: Total number of active community voice chats
+x-tagGroups:
+  - name: Social Service API
+    tags:
+      - communities-openapi_Communities
+      - communities-openapi_Referrals
+      - communities-openapi_Community Voice Chats
+  - name: Comms Gatekeeper API
+    tags:
+      - comms-gatekeeper-openapi_Health
+      - comms-gatekeeper-openapi_Communications
+      - comms-gatekeeper-openapi_Scene Administration
+      - comms-gatekeeper-openapi_Scene Bans
+      - comms-gatekeeper-openapi_Scene Stream Access
+      - comms-gatekeeper-openapi_Webhooks
+      - comms-gatekeeper-openapi_Private Messages
+      - comms-gatekeeper-openapi_Private Voice Chat
+      - comms-gatekeeper-openapi_Community Voice Chat

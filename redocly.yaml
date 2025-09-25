@@ -1,0 +1,22 @@
+extends:
+  - recommended
+
+apis:
+  social-service@v1:
+    root: https://decentraland.github.io/social-service-ea/communities-openapi.yaml
+    rules:
+      operation-4xx-response: off
+  comms-gatekeeper@v1:
+    root: https://decentraland.github.io/comms-gatekeeper/comms-gatekeeper-openapi.yaml
+    rules:
+      operation-4xx-response: off
+
+openapi:
+  nativeScrollbars: true
+  hideDownloadButton: false
+  hideHostname: false
+  expandResponses: "200,201"
+  requiredPropsFirst: true
+  sortPropsAlphabetically: false
+  showExtensions: true
+  noAutoAuth: true

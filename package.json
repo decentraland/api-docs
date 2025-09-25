@@ -1,0 +1,37 @@
+{
+  "name": "api-docs",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "yarn join-specs && vite --open",
+    "build": "yarn join-specs && vite build",
+    "preview": "vite preview",
+    "join-specs": "redocly join --config redocly.yaml -o public/joined-openapi.yaml --prefix-tags-with-filename --prefix-components-with-info-prop title"
+  },
+  "dependencies": {
+    "decentraland-ui2": "^0.28.1",
+    "mobx": "^6.13.7",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "redoc": "^2.5.0",
+    "styled-components": "^6.1.19"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.36.0",
+    "@redocly/cli": "^2.2.0",
+    "@types/react": "^19.1.13",
+    "@types/react-dom": "^19.1.9",
+    "@vitejs/plugin-react": "^5.0.3",
+    "eslint": "^9.36.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.20",
+    "globals": "^16.4.0",
+    "typescript": "~5.8.3",
+    "typescript-eslint": "^8.44.0",
+    "vite": "npm:rolldown-vite@7.1.12"
+  },
+  "resolutions": {
+    "vite": "npm:rolldown-vite@7.1.12"
+  }
+}
