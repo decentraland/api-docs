@@ -24,7 +24,7 @@ function App() {
       }
     >
       <RedocStandalone
-        specUrl="/joined-openapi.yaml"
+        specUrl="/api-docs/joined-openapi.yaml"
         options={{
           nativeScrollbars: true,
           hideDownloadButton: false,
