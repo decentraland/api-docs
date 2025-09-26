@@ -6,7 +6,7 @@ A unified API documentation site for Decentraland services, built with React, Re
 
 ### Prerequisites
 
-- Node.js 18+
+- Node.js 22+
 - Yarn package manager
 
 ### Running Locally

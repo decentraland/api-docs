@@ -10,7 +10,6 @@
     "join-specs": "redocly join --config redocly.yaml -o public/joined-openapi.yaml --prefix-tags-with-filename --prefix-components-with-info-prop title"
   },
   "dependencies": {
-    "decentraland-ui2": "^0.28.1",
     "mobx": "^6.13.7",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
