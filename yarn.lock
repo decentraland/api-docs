@@ -610,17 +610,17 @@
     require-from-string "^2.0.2"
     uri-js-replace "^1.0.1"
 
-"@redocly/cli@^2.2.0":
-  version "2.2.0"
-  resolved "https://registry.yarnpkg.com/@redocly/cli/-/cli-2.2.0.tgz#a2d3a4070fc4f0643f5670a9d0ce104e205c9dcf"
-  integrity sha512-3kXAcA7JLElZH206XqOiFcYtNlIhJeGFsopRypygO3W36sRvFO1d824jZeboYq9ROUaqij7nBCqBoBRKtldtDQ==
+"@redocly/cli@^2.2.1":
+  version "2.2.1"
+  resolved "https://registry.yarnpkg.com/@redocly/cli/-/cli-2.2.1.tgz#304719bfdde18599bdc366219918f1b5195778f7"
+  integrity sha512-ldjcFQB/Q7F4/pFpyPendK3bAwblipsDdawYQ3t62/biD2j9visK+IWs92mDcEDtk7hUvUbP4IfDGgVntiwxrg==
   dependencies:
     "@opentelemetry/exporter-trace-otlp-http" "0.202.0"
     "@opentelemetry/resources" "2.0.1"
     "@opentelemetry/sdk-trace-node" "2.0.1"
     "@opentelemetry/semantic-conventions" "1.34.0"
-    "@redocly/openapi-core" "2.2.0"
-    "@redocly/respect-core" "2.2.0"
+    "@redocly/openapi-core" "2.2.1"
+    "@redocly/respect-core" "2.2.1"
     abort-controller "^3.0.0"
     chokidar "^3.5.1"
     colorette "^1.2.0"
@@ -654,10 +654,10 @@
   dependencies:
     json-schema-to-ts "2.7.2"
 
-"@redocly/openapi-core@2.2.0":
-  version "2.2.0"
-  resolved "https://registry.yarnpkg.com/@redocly/openapi-core/-/openapi-core-2.2.0.tgz#44dd2e8729ce4eb0e153041f6fe9ef4125138115"
-  integrity sha512-gHedIv/1V5l7x1Nkb/kzRr8rlbGSqmDRs2AabO6BbV3cDofIwkRU7BJRFFNtjTq5LuLIWRTDYghfuIAG94/1Iw==
+"@redocly/openapi-core@2.2.1":
+  version "2.2.1"
+  resolved "https://registry.yarnpkg.com/@redocly/openapi-core/-/openapi-core-2.2.1.tgz#57b680e51d9abc6a08a05d26758d446dfee87936"
+  integrity sha512-XLv4/iE/vnNRMg/qOxlPn+joc8Edg93edhWz96deCsv35jfbdP7tYuwWHTvIXgi8NTJB3KueoOC2BPsU99dFVw==
   dependencies:
     "@redocly/ajv" "^8.11.2"
     "@redocly/config" "^0.31.0"
@@ -684,15 +684,15 @@
     pluralize "^8.0.0"
     yaml-ast-parser "0.0.43"
 
-"@redocly/respect-core@2.2.0":
-  version "2.2.0"
-  resolved "https://registry.yarnpkg.com/@redocly/respect-core/-/respect-core-2.2.0.tgz#18b7b3c4524ecd92df9e88b9646014135241ddca"
-  integrity sha512-agpspN6zZWSjSrpdtAKiT8vVMNSs/T0pKRZfgj3ZSvB/asfenJDdDRhDc0h0w2LTYlbcsHEn+TWj4d5czvwlWg==
+"@redocly/respect-core@2.2.1":
+  version "2.2.1"
+  resolved "https://registry.yarnpkg.com/@redocly/respect-core/-/respect-core-2.2.1.tgz#293629ec489503164dcfca832436335b6d663115"
+  integrity sha512-7G5DPn829NgIH73UBgvgKkdyPziCHW0mX1uW6/y6/JCIRF1mjetQE3UIvwp46/qfJz8MmHojhsrHLhCOl7K2LQ==
   dependencies:
     "@faker-js/faker" "^7.6.0"
     "@noble/hashes" "^1.8.0"
     "@redocly/ajv" "8.11.2"
-    "@redocly/openapi-core" "2.2.0"
+    "@redocly/openapi-core" "2.2.1"
     better-ajv-errors "^1.2.0"
     colorette "^2.0.20"
     jest-matcher-utils "^29.3.1"
